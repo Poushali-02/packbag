@@ -5,7 +5,8 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
 from manage.models import UserProfile
-from feed.models import Post, Follow, Like, Favorite
+from feed.models import Post, Follow
+from django.db.models import Count
 
 def profile(request, username=None):
     """Profile view that shows user's profile and posts"""
@@ -47,7 +48,11 @@ def profile(request, username=None):
         posts = posts.filter(is_private=False)
     elif not is_own_profile:
         posts = posts.filter(is_private=False)
-    
+        
+    posts = posts.annotate(
+    like_count=Count('likes', distinct=True),
+    comment_count=Count('comments', distinct=True)
+    )
     # Pagination for posts
     paginator = Paginator(posts, 12)
     page_number = request.GET.get('page')

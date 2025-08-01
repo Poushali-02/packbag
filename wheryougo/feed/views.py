@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from manage.models import UserProfile
@@ -7,7 +7,9 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import logout
-from .models import Post, Follow, Like, Favorite, PostImage
+from django.db.models import Q, Count
+from django.core.paginator import Paginator
+from .models import Post, Follow, Like, Favorite, PostImage, CommentLike, Comment
 
 
 # Create your views here.
@@ -24,7 +26,66 @@ def feed(request):
         )
         messages.info(request, 'Welcome! Your profile has been created.')
     
-    return render(request, 'feed/feed.html', {'user_profile': user_profile})
+    
+    following_users = Follow.objects.filter(follower=request.user).values_list('following', flat=True)
+    posts = Post.objects.filter(
+        Q(author__in=following_users) | Q(author=request.user),
+        is_private=False  # Only public posts in feed
+    ).select_related('author').prefetch_related(
+        'images', 'author__userprofile'
+    ).annotate(
+        total_likes=Count('likes', distinct=True),
+        total_favorites=Count('favorites', distinct=True)
+    ).order_by('-created_at')
+    
+    if not posts.exists():
+        posts = Post.objects.filter(
+            is_private=False
+        ).select_related('author').prefetch_related(
+            'images', 'author__userprofile'
+        ).annotate(
+            total_likes=Count('likes', distinct=True),
+            total_favorites=Count('favorites', distinct=True)
+        ).order_by('-created_at', '-total_likes')[:20]
+    
+    # Create lists of liked and favorited post IDs for template
+    user_liked_posts = list(Like.objects.filter(user=request.user).values_list('post_id', flat=True))
+    user_favorited_posts = list(Favorite.objects.filter(user=request.user).values_list('post_id', flat=True))
+    
+    for post in posts:
+        post.user_has_liked = Like.objects.filter(user=request.user, post=post).exists()
+        post.user_has_favorited = Favorite.objects.filter(user=request.user, post=post).exists()
+        post.is_following_author = Follow.objects.filter(
+            follower=request.user, 
+            following=post.author
+        ).exists() if post.author != request.user else None
+        
+        # Add dynamic properties for template
+        post.like_count = post.total_likes
+        post.favorite_count = post.total_favorites
+        post.comment_count = 0  # You can add comment count logic later
+    
+    paginator = Paginator(posts, 10)  # 10 posts per page
+    page_number = request.GET.get('page')
+    posts_page = paginator.get_page(page_number)
+    
+    suggested_users = User.objects.exclude(
+        id__in=following_users
+    ).exclude(
+        id=request.user.id
+    ).select_related('userprofile').annotate(
+        followers_count=Count('following')
+    ).order_by('-followers_count')[:5]
+    
+    context = {
+        'user_profile': user_profile,
+        'posts': posts_page,
+        'suggested_users': suggested_users,
+        'following_count': following_users.count() if following_users else 0,
+        'user_liked_posts': user_liked_posts,
+        'user_favorited_posts': user_favorited_posts,
+    }
+    return render(request, 'feed/feed.html', context)
   
 @login_required
 def create_post(request):
@@ -185,3 +246,48 @@ def get_tag_suggestions(request):
         suggestions = popular_tags[:10]  # Show top 10
     
     return JsonResponse({'suggestions': suggestions})
+
+@login_required
+def toggle_like(request, post_id):
+    if request.method == "POST":
+        post = get_object_or_404(Post, id=post_id)
+        liked = Like.objects.filter(user=request.user, post=post).first()
+        if liked:
+            liked.delete()
+            liked_status = False
+        else:
+            Like.objects.create(user=request.user, post=post)
+            liked_status = True
+        like_count = Like.objects.filter(post=post).count()
+        return JsonResponse({'success': True, 'liked': liked_status, 'like_count': like_count})
+    return JsonResponse({'success': False}, status=400)
+
+@login_required
+def toggle_favourite(request, post_id):
+    if request.method == 'POST':
+        post = get_object_or_404(Post, id=post_id)
+        favourite = Favorite.objects.filter(user=request.user, post=post).first()
+        if favourite:
+            favourite.delete()
+            favourite_status = False
+        else:
+            Favorite.objects.create(user=request.user, post=post)
+            favourite_status=True
+        favourite_count = Favorite.objects.filter(post=post).count()
+        return JsonResponse({'success': True, 'favourited': favourite_status, 'favourite_count': favourite_count})
+    return JsonResponse({'success': False}, status=400)
+
+@login_required
+def toggle_comment_like(request, comment_id):
+    if request.method == 'POST':
+        comment = get_object_or_404(CommentLike, id=comment_id)
+        comment_like = CommentLike.objects.filter(user=request.user,comment=comment).first()
+        if comment_like:
+            comment_like.delete()
+            comment_like_status = False
+        else:
+            CommentLike.objects.create(user=request.user, comment=comment)
+            comment_like_status=True
+        comment_like_count = CommentLike.objects.filter(comment=comment).count()
+        return JsonResponse({'success': True, 'liked': comment_like_status, 'like_count': comment_like_count})
+    return JsonResponse({'success': False}, status=400)

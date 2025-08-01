@@ -300,10 +300,10 @@
                                         <span>{{ post.created_at|date:"M d, Y" }}</span>
                                         <div class="flex items-center space-x-3">
                                             <span class="flex items-center">
-                                                ❤️ {{ post.likes_count }}
+                                                ❤️ {{ post.like_count }}
                                             </span>
                                             <span class="flex items-center">
-                                                💬 {{ post.comments.count }}
+                                                💬 {{ post.comment_count }}
                                             </span>
                                             {% if post.images.exists %}
                                                 <span class="text-purple-600">📸 {{ post.images.count }}</span>

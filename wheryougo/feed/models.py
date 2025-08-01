@@ -94,8 +94,8 @@ class Like(models.Model):
 
 
 class Favorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_favorites')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='favorites')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

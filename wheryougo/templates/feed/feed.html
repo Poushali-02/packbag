@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Feed - Packbag{% endblock %}
-
+{% block title %}Feed - {{ user_profile.name }}{% endblock %}
+{% block extra_style %}<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">{% endblock %}
 {% block content %}
 <!-- Main Feed Container -->
 <div class="min-h-screen bg-gray-50">
@@ -38,15 +38,15 @@
                         <div class="mt-4 pt-4 border-t border-gray-200">
                             <div class="flex justify-between text-sm">
                                 <div class="text-center">
-                                    <div class="font-semibold text-gray-900">12</div>
-                                    <div class="text-gray-500">Trips</div>
+                                    <div class="font-semibold text-gray-900">{{ user.posts.count }}</div>
+                                    <div class="text-gray-500">Posts</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-semibold text-gray-900">248</div>
+                                    <div class="font-semibold text-gray-900">{{ user.following.count }}</div>
                                     <div class="text-gray-500">Followers</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-semibold text-gray-900">156</div>
+                                    <div class="font-semibold text-gray-900">{{ following_count }}</div>
                                     <div class="text-gray-500">Following</div>
                                 </div>
                             </div>
@@ -124,151 +124,180 @@
                             <span class="text-lg font-bold text-white">{{ user_profile.name|first }}</span>
                         </div>
                         <div class="flex-1">
-                            <textarea 
-                                class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-travel-blue focus:border-travel-blue" 
-                                rows="3" 
-                                placeholder="Share your latest travel adventure..."
-                            ></textarea>
-                            <div class="flex items-center justify-between mt-4">
+                            <a href="{% url 'create_post' %}" class="block w-full p-3 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 transition duration-200">
+                                Share your latest travel adventure...
+                            </a>
+                            <div class="flex items-center justify-between mt-4 space-x-4">
                                 <div class="flex space-x-4">
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
+                                    <a href="{% url 'create_post' %}" class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
                                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         </svg>
                                         Photo
-                                    </button>
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
+                                    </a>
+                                    <a href="{% url 'create_post' %}" class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
                                         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         </svg>
                                         Location
-                                    </button>
+                                    </a>
                                 </div>
-                                <button class="bg-travel-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
-                                    Post
-                                </button>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'profile' %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition duration-200">
+                                        View Profile
+                                    </a>
+                                    <a href="{% url 'create_post' %}" class="bg-travel-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                                        Post
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Feed Posts -->
-                <div class="space-y-6">
-                    <!-- Travel Post 1 -->
-                    <div class="travel-card rounded-xl bg-white overflow-hidden">
-                        <div class="p-6">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-4">
-                                    <span class="text-lg font-bold text-white">S</span>
+                {% for post in posts %}
+                <article class="travel-card rounded-xl bg-white p-6 mb-6">
+                    <!-- Post Header -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            {% if post.author.userprofile.pfp %}
+                                <img src="{{ post.author.userprofile.pfp.url }}" alt="{{ post.author.username }}" class="w-12 h-12 rounded-full object-cover">
+                            {% else %}
+                                <div class="w-12 h-12 bg-gradient-to-r from-travel-blue to-travel-orange rounded-full flex items-center justify-center">
+                                    <span class="text-lg font-bold text-white">{{ post.author.userprofile.name|first }}</span>
                                 </div>
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-gray-900">Sarah Adventures</h3>
-                                    <p class="text-sm text-gray-500">Travel Vlogger • 2 hours ago • Tokyo, Japan</p>
-                                </div>
-                                <button class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-semibold text-gray-900">
+                                    {% if post.author.username %}
+                                        <a href="{% url 'profile' post.author.username %}" class="hover:text-travel-blue">{{ post.author.userprofile.name }}</a>
+                                    {% else %}
+                                        {{ post.author.userprofile.name }}
+                                    {% endif %}
+                                </h3>
+                                <p class="text-sm text-gray-500">
+                                    {% if post.author.username %}
+                                        @{{ post.author.username }} • 
+                                    {% endif %}
+                                    {{ post.created_at|timesince }} ago
+                                </p>
                             </div>
-                            <p class="text-gray-700 mb-4">
-                                Just arrived in Tokyo and I'm blown away! The contrast between modern skyscrapers and traditional temples is incredible. 
-                                Already planning my visit to Senso-ji Temple tomorrow morning. Who else has been to Tokyo? Any hidden gems I should know about? 🇯🇵✨
-                            </p>
                         </div>
-                        <div class="h-64 bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-500"></div>
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center space-x-6">
-                                    <button class="flex items-center text-gray-500 hover:text-red-500 transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
-                                        <span class="text-sm">124</span>
-                                    </button>
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
-                                        <span class="text-sm">23</span>
-                                    </button>
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-                                        </svg>
-                                        <span class="text-sm">Share</span>
-                                    </button>
-                                </div>
-                                <span class="text-xs bg-blue-100 text-travel-blue px-2 py-1 rounded-full">Solo Travel</span>
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Liked by <strong>Alex Kim</strong>, <strong>Maria Santos</strong> and <strong>122 others</strong>
-                            </div>
+                        <div class="relative">
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Travel Post 2 -->
-                    <div class="travel-card rounded-xl bg-white overflow-hidden">
-                        <div class="p-6">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-4">
-                                    <span class="text-lg font-bold text-white">M</span>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-gray-900">Mike Explorer</h3>
-                                    <p class="text-sm text-gray-500">Adventure Guide • 5 hours ago • Machu Picchu, Peru</p>
-                                </div>
-                                <button class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
+                    <!-- Post Content -->
+                    <div class="mb-4">
+                        <p class="text-gray-900 leading-relaxed">{{ post.content }}</p>
+                        {% if post.location %}
+                            <div class="flex items-center mt-2 text-travel-blue">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-sm">{{ post.location }}</span>
                             </div>
-                            <p class="text-gray-700 mb-4">
-                                Day 4 of the Inca Trail and we finally made it to Machu Picchu! The sunrise over the ancient ruins was absolutely breathtaking. 
-                                All the training and preparation was worth it for this moment. Highly recommend booking your permits well in advance! 🏔️
-                            </p>
-                        </div>
-                        <div class="h-64 bg-gradient-to-r from-green-400 to-blue-600"></div>
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center space-x-6">
-                                    <button class="flex items-center text-gray-500 hover:text-red-500 transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                        </svg>
-                                        <span class="text-sm">89</span>
-                                    </button>
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                        </svg>
-                                        <span class="text-sm">15</span>
-                                    </button>
-                                    <button class="flex items-center text-gray-500 hover:text-travel-blue transition duration-200">
-                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-                                        </svg>
-                                        <span class="text-sm">Share</span>
-                                    </button>
-                                </div>
-                                <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">Adventure</span>
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Liked by <strong>Emma Rodriguez</strong>, <strong>David Chen</strong> and <strong>87 others</strong>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
 
-                    <!-- Load More Button -->
-                    <div class="text-center py-6">
-                        <button class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition duration-200">
-                            Load More Posts
-                        </button>
+                    <!-- Post Images -->
+                    {% if post.images.all %}
+                        <div class="mb-4">
+                            {% if post.images.count == 1 %}
+                                <div class="rounded-lg overflow-hidden">
+                                    <img src="{{ post.images.first.image.url }}" alt="Post image" class="w-full h-auto object-cover">
+                                </div>
+                            {% elif post.images.count == 2 %}
+                                <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
+                                    {% for image in post.images.all %}
+                                        <img src="{{ image.image.url }}" alt="Post image" class="w-full h-64 object-cover">
+                                    {% endfor %}
+                                </div>
+                            {% elif post.images.count == 3 %}
+                                <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
+                                    <img src="{{ post.images.first.image.url }}" alt="Post image" class="w-full h-64 object-cover">
+                                    <div class="grid grid-rows-2 gap-2">
+                                        {% for image in post.images.all|slice:"1:" %}
+                                            <img src="{{ image.image.url }}" alt="Post image" class="w-full h-31 object-cover">
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
+                                    {% for image in post.images.all|slice:":2" %}
+                                        <img src="{{ image.image.url }}" alt="Post image" class="w-full h-64 object-cover">
+                                    {% endfor %}
+                                    {% if post.images.count > 2 %}
+                                        <div class="relative">
+                                            <img src="{{ post.images.all.2.image.url }}" alt="Post image" class="w-full h-64 object-cover">
+                                            {% if post.images.count > 4 %}
+                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                                    <span class="text-white text-2xl font-bold">+{{ post.images.count|add:"-3" }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    
+                    <!-- Post Actions -->
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div class="flex space-x-6">
+                                <button type='button' onclick="toggleLike({{ post.id }}, event)" class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition duration-200">
+                                    <svg id="like-icon-{{ post.id }}" class="w-5 h-5 {% if post.id in user_liked_posts %}text-red-500 fill-current{% endif %}" fill="{% if post.id in user_liked_posts %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    <span id="like-count-{{ post.id }}">{{ post.like_count }}</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-500 hover:text-travel-blue transition duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a9.863 9.863 0 01-4.906-1.298L3 21l1.298-5.094A9.863 9.863 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
+                                    </svg>
+                                    <span>{{ post.comment_count }}</span>
+                                </button>
+                                <button class="flex items-center space-x-2 text-gray-500 hover:text-travel-blue transition duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                    </svg>
+                                    <span>Share</span>
+                                </button>
+                            </div>
+                            <div  class="flex items-center space-x-4">
+                                <button type="button" onclick="toggleFav({{ post.id }}, event)" class="flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition duration-200">
+                                    <i id="fav-{{ post.id }}" class="fa-solid fa-thumbtack"></i>
+                                    <span id="favourite-count-{{ post.id }}" class="text-sm">{{ post.favourite_count }}</span>
+                                </button>
+                            </div>
+                        </div>
+                </article>
+                {% empty %}
+                    <div class="travel-card rounded-xl bg-white p-8 mb-6 text-center">
+                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
+                        <p class="text-gray-500 mb-4">Start following people or create your first post to see content here.</p>
+                        <a href="{% url 'create_post' %}" class="inline-flex items-center px-4 py-2 bg-travel-blue text-white rounded-lg hover:bg-blue-700 transition duration-200">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Create Your First Post
+                        </a>
                     </div>
-                </div>
+                {% endfor %}
             </div>
 
             <!-- Right Sidebar -->
@@ -369,4 +398,89 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // CSRF Token for AJAX requests
+    const csrftoken = getCookie('csrftoken');
+    if (!csrftoken) {
+        console.error('CSRF token not found');
+    }
+    function toggleLike(postId, event){
+        if(event) event.preventDefault();  // prevent form submission
+
+        fetch(`/feed/post/${postId}/like/`, {
+            method:'POST',
+            headers:{
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            }
+        }).then(
+            response => response.json()
+        ).then(
+            data => {
+                if(data.success){
+                    const likebtn = document.querySelector(`#like-count-${postId}`);
+                    likebtn.textContent = data.like_count;
+                    const svg = document.querySelector(`#like-icon-${postId}`);
+                    if(data.liked){
+                    svg.classList.add('text-red-500', 'fill-current');
+                    svg.setAttribute('fill', 'currentColor');
+                } else {
+                    svg.classList.remove('text-red-500', 'fill-current');
+                    svg.setAttribute('fill', 'none');
+                }
+                }
+            }
+        )
+    }
+
+    function toggleFav(postId, event){
+        if(event) event.preventDefault();
+
+        fetch(`/feed/post/${postId}/favourite/`, {
+            method:'POST',
+            headers:{
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            }
+        }).then(
+            response => response.json()
+        ).then(
+            data => {
+                if(data.success){
+                    const favBtn = document.querySelector(`#favourite-count-${postId}`);
+                    favBtn.textContent = data.favourite_count;
+                    const i = document.querySelector(`#fav-${postId}`);
+                    if(data.favourited){
+                    i.classList.add('text-red-500', 'fill-current');
+                    i.setAttribute('fill', 'currentColor');
+                } else {
+                    i.classList.remove('text-red-500', 'fill-current');
+                    i.setAttribute('fill', 'none');
+                }
+                }
+            }
+        )
+    }
+
+
+    // Utility function to get CSRF token from cookies for AJAX POST requests:
+    function getCookie(name) {
+        let cookieValue = null;
+        if(document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for(let i=0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                // Does cookie string begin with name we want?
+                if(cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}
