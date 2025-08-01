@@ -132,7 +132,8 @@
                     <div class="space-y-4">
                         <div class="flex items-start space-x-3">
                             <div class="flex items-center h-5">
-                                <input id="public-profile" name="public_profile" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue">
+                                <input id="public-profile" name="public_profile" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue"
+                                {% if not user_profile.is_private %}checked{% endif %}>
                             </div>
                             <div class="flex-1">
                                 <label for="public-profile" class="text-sm font-medium text-gray-700">Public Profile</label>
@@ -142,7 +143,8 @@
                         
                         <div class="flex items-start space-x-3">
                             <div class="flex items-center h-5">
-                                <input id="show-location" name="show_location" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue">
+                                <input id="show-location" name="show_location" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue"
+                                {% if user_profile.show_location %}checked{% endif %}>
                             </div>
                             <div class="flex-1">
                                 <label for="show-location" class="text-sm font-medium text-gray-700">Show Location</label>

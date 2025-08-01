@@ -16,6 +16,8 @@ class UserProfile(models.Model):
         ('wanderer', 'Wanderer')
     ], default='traveler')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_private = models.BooleanField(default=False)
+    show_location = models.BooleanField(default=True)
     
     def __str__(self):
         return f"{self.user.username} - {self.name}"

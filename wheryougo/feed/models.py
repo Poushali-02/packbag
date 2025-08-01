@@ -20,6 +20,10 @@ class Post(models.Model):
     ]
     
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    
+    post_type = models.CharField(max_length=20, choices=POST_TYPES, default='travel')
+    
+    
     title = models.CharField(max_length=200)
     content = models.TextField(blank=True)
     location = models.CharField(max_length=100, blank=True)
@@ -59,9 +63,12 @@ class PostImage(models.Model):
     image = models.ImageField(upload_to='posts/')
     caption = models.CharField(max_length=200, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    order = models.PositiveIntegerField(default=1)
+    class Meta:
+        ordering = ['order']
     
     def __str__(self):
-        return f"Image for {self.post.title}"
+        return f"Image for {self.post.id} user {self.post.author.username}"
 
 class Follow(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')

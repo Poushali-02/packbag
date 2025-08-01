@@ -28,9 +28,24 @@ def profile(request, username=None):
             user_type='traveler'
         )
     
-    # Get user's posts (exclude private posts if not own profile)
+    
+    is_own_profile = request.user == profile_user
+    can_view_posts = not user_profile.is_private or is_own_profile
+
+    if user_profile.is_private and not is_own_profile:
+        if request.user.is_authenticated:
+            can_view_posts = Follow.objects.filter(
+                follower=request.user, 
+                following=profile_user
+            ).exists()
+        else:
+            can_view_posts = False
+
     posts = Post.objects.filter(author=profile_user)
-    if request.user != profile_user:
+    
+    if not can_view_posts:
+        posts = posts.filter(is_private=False)
+    elif not is_own_profile:
         posts = posts.filter(is_private=False)
     
     # Pagination for posts
@@ -60,6 +75,7 @@ def profile(request, username=None):
         'posts_count': posts_count,
         'is_following': is_following,
         'is_own_profile': request.user == profile_user,
+        'can_view_posts': can_view_posts
     }
     
     return render(request, 'profiles/profile.html', context)
@@ -79,6 +95,13 @@ def edit_profile(request, username):
         location = request.POST.get('location', '').strip()
         user_type = request.POST.get('user_type', 'traveler')
         
+        public_profile_checked = 'public_profile' in request.POST
+        show_location_checked = 'show_location' in request.POST
+
+        # Invert public_profile checkbox to is_private model field
+        user_profile.is_private = not public_profile_checked
+        user_profile.show_location = show_location_checked
+
         # Handle profile picture upload
         if 'pfp' in request.FILES:
             try:
