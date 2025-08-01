@@ -173,7 +173,7 @@
                     Posts
                 </button>
                 {% if is_own_profile %}
-                <button onclick="showFavorites()" id="favorites-tab" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                <button onclick="showFavorites({{ user.id }})" id="favorites-tab" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                     </svg>
@@ -373,7 +373,7 @@
         <!-- Favorites Section (Only for own profile) -->
         {% if is_own_profile %}
         <div id="favorites-content" class="content-section hidden">
-            <div class="text-center py-12">
+            {% comment %} <div class="text-center py-12">
                 <div class="text-gray-400 mb-4">
                     <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
@@ -381,7 +381,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Your Favorites</h3>
                 <p class="text-gray-500">Save posts you love to view them later. Your favorites are private and only visible to you.</p>
-            </div>
+            </div> {% endcomment %}
         </div>
         {% endif %}
         
@@ -492,8 +492,20 @@ function showPosts() {
     switchTab('posts');
 }
 
-function showFavorites() {
+function showFavorites(userId) {
     switchTab('favorites');
+    const favoritesContent = document.getElementById('favorites-content');
+    if (!favoritesContent.dataset.loaded) {
+        fetch(`/profile/favourites/${userId}/`)
+            .then(response => response.text())
+            .then(html => {
+                favoritesContent.innerHTML = html;
+                favoritesContent.dataset.loaded = "true";
+            })
+            .catch(error => {
+                favoritesContent.innerHTML = "<div class='text-red-500'>Failed to load favorites.</div>";
+            });
+    }
 }
 
 function showAbout() {

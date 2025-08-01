@@ -35,7 +35,8 @@ def feed(request):
         'images', 'author__userprofile'
     ).annotate(
         total_likes=Count('likes', distinct=True),
-        total_favorites=Count('favorites', distinct=True)
+        total_favorites=Count('favorites', distinct=True),
+        comment_count = Count('comments', distinct=True)
     ).order_by('-created_at')
     
     if not posts.exists():
@@ -63,7 +64,8 @@ def feed(request):
         # Add dynamic properties for template
         post.like_count = post.total_likes
         post.favorite_count = post.total_favorites
-        post.comment_count = 0  # You can add comment count logic later
+        post.comment_count = 0
+        post.tags_list = post.get_tags_list()
     
     paginator = Paginator(posts, 10)  # 10 posts per page
     page_number = request.GET.get('page')
@@ -191,8 +193,7 @@ def create_post(request):
         'user_profile': user_profile,
         'post_types': Post.POST_TYPES,
     })
-    
-    
+
 @login_required
 def ajax_upload_image(request):
     """Handle AJAX image upload for preview"""
@@ -291,3 +292,39 @@ def toggle_comment_like(request, comment_id):
         comment_like_count = CommentLike.objects.filter(comment=comment).count()
         return JsonResponse({'success': True, 'liked': comment_like_status, 'like_count': comment_like_count})
     return JsonResponse({'success': False}, status=400)
+
+@login_required
+def view_post(request, post_id):
+    post = get_object_or_404(Post.objects.prefetch_related('images', 'likes__user', 'comments__author'), id=post_id)
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.error(request, "You must be logged in to comment.")
+            return redirect('signin')
+        
+        content = request.POST.get('comment', '').strip()
+        if content:
+            Comment.objects.create(post=post, author=request.user, content=content)
+            messages.success(request, "Comment added!")
+            return redirect('view_post', post_id=post.id)
+        else:
+            messages.error(request, "Comment cannot be empty.")
+
+    return render(request, 'feed/_post.html', {'post': post})
+
+@login_required
+def comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.error(request, "You must be logged in to comment.")
+            return redirect('signin')
+        
+        content = request.POST.get('comment', '').strip()
+        if content:
+            Comment.objects.create(post=post, author=request.user, content=content)
+            messages.success(request, "Comment added!")
+            return redirect('view_post', post_id=post.id)
+        else:
+            messages.error(request, "Comment cannot be empty.")
+    
+    return render(request, 'feed/_post.html', {'post': post})

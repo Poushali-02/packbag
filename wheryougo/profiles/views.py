@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
 from manage.models import UserProfile
-from feed.models import Post, Follow
+from feed.models import Post, Follow, Favorite
 from django.db.models import Count
 
 def profile(request, username=None):
@@ -167,3 +167,14 @@ def follow_user(request, username):
             })
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def favourites(request, userid):
+    user = get_object_or_404(User, id=userid)
+    if request.user != user:
+        messages.error(request, "You can only view your own favourites.")
+        return redirect('profile')
+    
+    favs = Favorite.objects.filter(user=user).select_related('post')
+    fav_posts = [fav.post for fav in favs]
+    return render(request, 'profiles/_favourites.html', {'posts': fav_posts})
