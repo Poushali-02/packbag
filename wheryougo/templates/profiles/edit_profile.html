@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - {{ user_profile.name }}{% endblock %}
+
+{% block content %}
+<!-- Messages Section -->
+{% if messages %}
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg border {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                <div class="flex items-center">
+                    {% if message.tags == 'success' %}
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    {% elif message.tags == 'error' %}
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    {% elif message.tags == 'warning' %}
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    {% else %}
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    {% endif %}
+                    <span class="font-medium">{{ message }}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <a href="/profile/{{ user.username }}/" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+                </div>
+                <a href="/profile/{{ user.username }}/" class="text-travel-blue hover:text-blue-700 font-medium">
+                    View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <form method="POST" enctype="multipart/form-data" class="divide-y divide-gray-200">
+                {% csrf_token %}
+                
+                <!-- Profile Picture Section -->
+                <div class="p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Profile Picture</h3>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                        <div class="relative">
+                            {% if user_profile.pfp %}
+                                <img id="profile-preview" src="{{ user_profile.pfp.url }}" alt="{{ user_profile.name }}" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                            {% else %}
+                                <div id="profile-preview" class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-travel-blue to-travel-orange rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                                    <span class="text-2xl sm:text-4xl font-bold text-white">{{ user_profile.name|first }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <label for="pfp" class="block text-sm font-medium text-gray-700 mb-2">Upload new picture</label>
+                            <input type="file" id="pfp" name="pfp" accept="image/*" onchange="previewImage(this)" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-travel-blue file:text-white hover:file:bg-blue-700 transition duration-200">
+                            <p class="text-xs text-gray-500 mt-2">Recommended: Square image, at least 300x300px</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="sm:col-span-2">
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                            <input type="text" id="name" name="name" value="{{ user_profile.name }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-travel-blue focus:border-travel-blue transition duration-200">
+                            <p class="text-xs text-gray-500 mt-1">This is how your name will appear to other travelers</p>
+                        </div>
+                        
+                        <div>
+                            <label for="user_type" class="block text-sm font-medium text-gray-700 mb-2">Traveler Type</label>
+                            <select id="user_type" name="user_type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-travel-blue focus:border-travel-blue transition duration-200">
+                                <option value="traveler" {% if user_profile.user_type == 'traveler' %}selected{% endif %}>🌍 Traveler</option>
+                                <option value="vlogger" {% if user_profile.user_type == 'vlogger' %}selected{% endif %}>🎥 Vlogger</option>
+                                <option value="explorer" {% if user_profile.user_type == 'explorer' %}selected{% endif %}>🗺️ Explorer</option>
+                                <option value="wanderer" {% if user_profile.user_type == 'wanderer' %}selected{% endif %}>🎒 Wanderer</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <input type="text" id="location" name="location" value="{{ user_profile.location }}" placeholder="City, Country" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-travel-blue focus:border-travel-blue transition duration-200">
+                            <p class="text-xs text-gray-500 mt-1">Where are you based?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bio Section -->
+                <div class="p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">About You</h3>
+                    <div>
+                        <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Tell other travelers about yourself, your travel style, favorite destinations..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-travel-blue focus:border-travel-blue transition duration-200 resize-none">{{ user_profile.bio }}</textarea>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="text-xs text-gray-500">Share your travel passion and experiences</p>
+                            <span id="bio-count" class="text-xs text-gray-400">{{ user_profile.bio|length }}/500</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <div class="p-6 sm:p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Privacy Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex items-center h-5">
+                                <input id="public-profile" name="public_profile" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue">
+                            </div>
+                            <div class="flex-1">
+                                <label for="public-profile" class="text-sm font-medium text-gray-700">Public Profile</label>
+                                <p class="text-xs text-gray-500">Allow other travelers to find and view your profile</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="flex items-center h-5">
+                                <input id="show-location" name="show_location" type="checkbox" checked class="w-4 h-4 text-travel-blue border-gray-300 rounded focus:ring-travel-blue">
+                            </div>
+                            <div class="flex-1">
+                                <label for="show-location" class="text-sm font-medium text-gray-700">Show Location</label>
+                                <p class="text-xs text-gray-500">Display your location on your profile</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="px-6 py-4 sm:px-8 sm:py-6 bg-gray-50 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 bg-travel-blue text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-travel-blue focus:ring-offset-2 transition duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Save Changes
+                    </button>
+                    <a href="/profile/{{ user.username }}/" class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200">
+                        Cancel
+                    </a>
+                    <div class="flex-1"></div>
+                    <button type="button" onclick="confirmDelete()" class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Delete Account
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-200">
+            <h4 class="text-sm font-medium text-blue-900 mb-3">💡 Profile Tips</h4>
+            <ul class="text-sm text-blue-800 space-y-2">
+                <li>• Use a clear, friendly profile picture to help other travelers recognize you</li>
+                <li>• Write an engaging bio that highlights your travel interests and experiences</li>
+                <li>• Choose a traveler type that best represents your travel style</li>
+                <li>• Keep your location updated to connect with local travelers</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Account</h3>
+            <p class="text-gray-600 text-center mb-6">Are you sure you want to delete your account? This action cannot be undone and all your posts will be permanently deleted.</p>
+            
+            <div class="flex space-x-3">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition duration-200">
+                    Cancel
+                </button>
+                <button onclick="deleteAccount()" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-200">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('profile-preview');
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                // Replace the div with an img
+                const img = document.createElement('img');
+                img.id = 'profile-preview';
+                img.src = e.target.result;
+                img.alt = '{{ user_profile.name }}';
+                img.className = 'w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-lg';
+                preview.parentNode.replaceChild(img, preview);
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Bio character counter
+document.getElementById('bio').addEventListener('input', function() {
+    const bioCount = document.getElementById('bio-count');
+    const length = this.value.length;
+    bioCount.textContent = length + '/500';
+    
+    if (length > 500) {
+        bioCount.classList.add('text-red-500');
+        bioCount.classList.remove('text-gray-400');
+    } else {
+        bioCount.classList.remove('text-red-500');
+        bioCount.classList.add('text-gray-400');
+    }
+});
+
+// Delete account modal
+function confirmDelete() {
+    document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.add('hidden');
+}
+
+function deleteAccount() {
+    // Implement delete account functionality
+    alert('Delete account functionality would be implemented here');
+    closeDeleteModal();
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const bio = document.getElementById('bio').value;
+    
+    if (!name) {
+        e.preventDefault();
+        alert('Please enter a display name');
+        document.getElementById('name').focus();
+        return;
+    }
+    
+    if (bio.length > 500) {
+        e.preventDefault();
+        alert('Bio must be 500 characters or less');
+        document.getElementById('bio').focus();
+        return;
+    }
+});
+</script>
+
+{% endblock %}
