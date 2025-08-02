@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'manage',
     'feed',
     'profiles',
+    'notification',
 ]
 
 MIDDLEWARE = [

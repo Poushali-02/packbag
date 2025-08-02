@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from manage.models import UserProfile
 from feed.models import Post, Follow, Favorite
 from django.db.models import Count
+from notification.models import Notification
 
 def profile(request, username=None):
     """Profile view that shows user's profile and posts"""
@@ -151,10 +152,21 @@ def follow_user(request, username):
                 follow.delete()
                 following = False
                 action = 'unfollowed'
+                Notification.objects.create(
+                    to_user=user_to_follow,
+                    from_user=request.user,
+                    notification_type='unfollow',
+                )
+            
             else:
                 # Follow
                 following = True
                 action = 'followed'
+                Notification.objects.create(
+                    to_user=user_to_follow,
+                    from_user=request.user,
+                    notification_type='follow',
+                )
             
             # Get updated counts
             followers_count = Follow.objects.filter(following=user_to_follow).count()

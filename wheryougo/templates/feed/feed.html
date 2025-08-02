@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}Feed - {{ user_profile.name }}{% endblock %}
 {% block extra_style %}
 
@@ -44,7 +44,11 @@
                 <div class="travel-card rounded-xl bg-white p-6 mb-6">
                     <div class="text-center">
                         <div class="w-20 h-20 bg-gradient-to-r from-travel-blue to-travel-orange rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span class="text-2xl font-bold text-white">{{ user_profile.name|first }}</span>
+                            {% if user_profile.pfp %}
+                                <img src="{{ user_profile.pfp.url }}" alt="{{ user_profile.name }}" class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                <span class="text-2xl font-bold text-white">{{ user_profile.name|first }}</span>
+                            {% endif %}
                         </div>
                         <h3 class="text-lg font-semibold text-gray-900">{{ user_profile.name }}</h3>
                         <p class="text-sm text-gray-500 capitalize">{{ user_profile.user_type }}</p>
@@ -134,7 +138,11 @@
                 <div class="travel-card rounded-xl bg-white p-6 mb-6">
                     <div class="flex items-start space-x-4">
                         <div class="hide w-12 h-12 bg-gradient-to-r from-travel-blue to-travel-orange rounded-full flex items-center justify-center">
-                            <span class="hide text font-bold text-white">{{ user_profile.name|first }}</span>
+                            {% if user_profile.pfp %}
+                                <img src="{{ user_profile.pfp.url }}" alt="{{ user_profile.name }}" class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                <span class="text-l font-bold text-white">{{ user_profile.name|first }}</span>
+                            {% endif %}
                         </div>
                         <div class="flex-1">
                             <a href="{% url 'create_post' %}" class="block w-full p-3 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 transition duration-200">
@@ -289,10 +297,10 @@
                                     </svg>
                                     <span id="like-count-{{ post.id }}">{{ post.like_count }}</span>
                                 </button>
-                                <button class="flex items-center space-x-2 text-gray-500 hover:text-travel-blue transition duration-200">
+                                <a href="{% url 'comment' post.id %}" class="flex items-center space-x-2 text-gray-500 hover:text-travel-blue transition duration-200">
                                     <i class="fas fa-comment"></i>
                                     <span>{{ post.comment_count }}</span>
-                                </button>
+                                </a>
                                 <button class="flex items-center space-x-2 text-gray-500 hover:text-travel-blue transition duration-200">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
@@ -301,9 +309,9 @@
                                 </button>
                             </div>
                             <div  class="flex items-center space-x-4">
-                                <button type="button" onclick="toggleFav({{ post.id }}, event)" class="flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition duration-200">
+                                <button type="button" onclick="toggleFavorite({{ post.id }}, event)" class="flex items-center space-x-2 text-gray-500 hover:text-yellow-500 transition duration-200">
                                     <i id="fav-{{ post.id }}" class="fa-solid fa-thumbtack"></i>
-                                    <span id="favourite-count-{{ post.id }}" class="text-sm">{{ post.favourite_count }}</span>
+                                    <span id="favourite-count-{{ post.id }}" class="text-sm">{{ post.favorite_count }}</span>
                                 </button>
                             </div>
                         </div>
@@ -330,56 +338,36 @@
             <div class="lg:col-span-1 hide">
                 <!-- Suggested Connections -->
                 <div class="travel-card rounded-xl bg-white p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Suggested Connections</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
-                                    <span class="text-sm font-bold text-white">A</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900">Anna Travel</p>
-                                    <p class="text-xs text-gray-500">Food Blogger</p>
-                                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Suggested Connections</h3>
+                <div class="space-y-4">
+                    {% for user in suggested_users %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <a href="{% url 'profile' user.username %}" class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
+                                {% if user.userprofile.pfp %}
+                                    <img src="{{ user.userprofile.pfp.url }}" alt="{{ user.userprofile.name }}" class="w-full h-full rounded-full object-cover">
+                                {% else %}
+                                    <span class="text-lg font-bold text-white">{{ user.userprofile.name|first }}</span>
+                                {% endif %}
+                            </a>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ user.userprofile.name }}</p>
+                                <p class="text-xs text-gray-500">{{ user.userprofile.user_type|capfirst }}</p>
                             </div>
-                            <button class="bg-travel-blue text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-blue-700 transition duration-200">
-                                Follow
-                            </button>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                                    <span class="text-sm font-bold text-white">J</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900">Jake Wilson</p>
-                                    <p class="text-xs text-gray-500">Backpacker</p>
-                                </div>
-                            </div>
-                            <button class="bg-travel-blue text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-blue-700 transition duration-200">
-                                Follow
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                                    <span class="text-sm font-bold text-white">L</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900">Lisa Chen</p>
-                                    <p class="text-xs text-gray-500">Photographer</p>
-                                </div>
-                            </div>
-                            <button class="bg-travel-blue text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-blue-700 transition duration-200">
-                                Follow
-                            </button>
-                        </div>
+                        <a href="{% url 'profile' user.username %}" class="bg-travel-blue text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-blue-700 transition duration-200">
+                            Check
+                        </a>
                     </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-500">No suggestions available.</p>
+                    {% endfor %}
                 </div>
+            </div>
 
-                <!-- Upcoming Events -->
-                <div class="travel-card rounded-xl bg-white p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
+            <!-- Upcoming Events -->
+            {% comment %} <div class="travel-card rounded-xl bg-white p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
                     <div class="space-y-4">
                         <div class="border-l-4 border-travel-blue pl-4">
                             <p class="text-sm font-medium text-gray-900">Travel Meetup NYC</p>
@@ -397,27 +385,11 @@
                             <p class="text-xs text-gray-600 mt-1">Share your best sunrise travel photo</p>
                         </div>
                     </div>
-                </div>
+                </div> {% endcomment %}
 
                 <!-- Recent Activity -->
-                <div class="travel-card rounded-xl bg-white p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                    <div class="space-y-3">
-                        <div class="text-sm">
-                            <span class="font-medium text-gray-900">Maria Santos</span>
-                            <span class="text-gray-600"> liked your post about Rome</span>
-                            <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
-                        </div>
-                        <div class="text-sm">
-                            <span class="font-medium text-gray-900">David Kim</span>
-                            <span class="text-gray-600"> started following you</span>
-                            <p class="text-xs text-gray-500 mt-1">5 hours ago</p>
-                        </div>
-                        <div class="text-sm">
-                            <span class="font-medium text-gray-900">Travel Group SF</span>
-                            <span class="text-gray-600"> invited you to join</span>
-                            <p class="text-xs text-gray-500 mt-1">1 day ago</p>
-                        </div>
+                <div id="notifications" class="travel-card rounded-xl bg-white p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Loading Recent Activity ... </h3>
                     </div>
                 </div>
             </div>
@@ -427,86 +399,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // CSRF Token for AJAX requests
-    const csrftoken = getCookie('csrftoken');
-    if (!csrftoken) {
-        console.error('CSRF token not found');
-    }
-    function toggleLike(postId, event){
-        if(event) event.preventDefault();  // prevent form submission
-
-        fetch(`/feed/post/${postId}/like/`, {
-            method:'POST',
-            headers:{
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json',
-            }
-        }).then(
-            response => response.json()
-        ).then(
-            data => {
-                if(data.success){
-                    const likebtn = document.querySelector(`#like-count-${postId}`);
-                    likebtn.textContent = data.like_count;
-                    const svg = document.querySelector(`#like-icon-${postId}`);
-                    if(data.liked){
-                    svg.classList.add('text-red-500', 'fill-current');
-                    svg.setAttribute('fill', 'currentColor');
-                } else {
-                    svg.classList.remove('text-red-500', 'fill-current');
-                    svg.setAttribute('fill', 'none');
-                }
-                }
-            }
-        )
-    }
-
-    function toggleFav(postId, event){
-        if(event) event.preventDefault();
-
-        fetch(`/feed/post/${postId}/favourite/`, {
-            method:'POST',
-            headers:{
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json',
-            }
-        }).then(
-            response => response.json()
-        ).then(
-            data => {
-                if(data.success){
-                    const favBtn = document.querySelector(`#favourite-count-${postId}`);
-                    favBtn.textContent = data.favourite_count;
-                    const i = document.querySelector(`#fav-${postId}`);
-                    if(data.favourited){
-                    i.classList.add('text-red-500', 'fill-current');
-                    i.setAttribute('fill', 'currentColor');
-                } else {
-                    i.classList.remove('text-red-500', 'fill-current');
-                    i.setAttribute('fill', 'none');
-                }
-                }
-            }
-        )
-    }
-
-
-    // Utility function to get CSRF token from cookies for AJAX POST requests:
-    function getCookie(name) {
-        let cookieValue = null;
-        if(document.cookie && document.cookie !== '') {
-            let cookies = document.cookie.split(';');
-            for(let i=0; i < cookies.length; i++) {
-                let cookie = cookies[i].trim();
-                // Does cookie string begin with name we want?
-                if(cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-</script>
+<script src="{% static 'feed.js' %}"></script>
 {% endblock %}

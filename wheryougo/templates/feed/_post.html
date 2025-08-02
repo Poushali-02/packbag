@@ -42,7 +42,7 @@
       {% for comment in post.comments.all %}
         <div class="comment p-2 bg-gray-100 rounded">
           <p>
-            <span class="font-semibold">{{ comment.author.username }}</span>:
+            <a href="{% url 'profile' comment.author %}" class="font-semibold">{{ comment.author.username }}</a>:
             {{ comment.content }}
           </p>
           <small class="text-xs text-gray-500">{{ comment.created_at|timesince }} ago</small>

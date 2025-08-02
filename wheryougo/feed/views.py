@@ -10,7 +10,7 @@ from django.contrib.auth import logout
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from .models import Post, Follow, Like, Favorite, PostImage, CommentLike, Comment
-
+from notification.models import Notification
 
 # Create your views here.
 @login_required(login_url='manage/signin')
@@ -28,9 +28,11 @@ def feed(request):
     
     
     following_users = Follow.objects.filter(follower=request.user).values_list('following', flat=True)
+    users = User.objects.select_related('userprofile')[:10]
+
     posts = Post.objects.filter(
-        Q(author__in=following_users) | Q(author=request.user),
-        is_private=False  # Only public posts in feed
+        Q(author__in=users) | Q(author=request.user),
+        is_private=False
     ).select_related('author').prefetch_related(
         'images', 'author__userprofile'
     ).annotate(
@@ -64,7 +66,7 @@ def feed(request):
         # Add dynamic properties for template
         post.like_count = post.total_likes
         post.favorite_count = post.total_favorites
-        post.comment_count = 0
+        post.comment_count = post.comments.count
         post.tags_list = post.get_tags_list()
     
     paginator = Paginator(posts, 10)  # 10 posts per page
@@ -77,7 +79,7 @@ def feed(request):
         id=request.user.id
     ).select_related('userprofile').annotate(
         followers_count=Count('following')
-    ).order_by('-followers_count')[:5]
+    ).order_by('-followers_count')[:3]
     
     context = {
         'user_profile': user_profile,
@@ -256,26 +258,49 @@ def toggle_like(request, post_id):
         if liked:
             liked.delete()
             liked_status = False
+            Notification.objects.filter(
+                to_user=post.author,
+                from_user=request.user,
+                notif_type='like',
+                post=post
+            ).delete()
         else:
             Like.objects.create(user=request.user, post=post)
             liked_status = True
+            
+            if post.author != request.user:
+                Notification.objects.create(
+                    to_user=post.author,
+                    from_user=request.user,
+                    notification_type='like',
+                    post=post
+                )
+
         like_count = Like.objects.filter(post=post).count()
         return JsonResponse({'success': True, 'liked': liked_status, 'like_count': like_count})
     return JsonResponse({'success': False}, status=400)
 
 @login_required
-def toggle_favourite(request, post_id):
+def toggle_favorite(request, post_id):
     if request.method == 'POST':
         post = get_object_or_404(Post, id=post_id)
-        favourite = Favorite.objects.filter(user=request.user, post=post).first()
-        if favourite:
-            favourite.delete()
-            favourite_status = False
+        favorite = Favorite.objects.filter(user=request.user, post=post).first()
+        if favorite:
+            favorite.delete()
+            favorite_status = False
         else:
             Favorite.objects.create(user=request.user, post=post)
-            favourite_status=True
-        favourite_count = Favorite.objects.filter(post=post).count()
-        return JsonResponse({'success': True, 'favourited': favourite_status, 'favourite_count': favourite_count})
+            favorite_status=True
+
+            if post.author != request.user:
+                Notification.objects.create(
+                    to_user=post.author,
+                    from_user=request.user,
+                    notification_type='favorite',
+                    post=post
+                )
+        favorite_count = Favorite.objects.filter(post=post).count()
+        return JsonResponse({'success': True, 'favorited': favorite_status, 'favorite_count': favorite_count})
     return JsonResponse({'success': False}, status=400)
 
 @login_required
@@ -323,6 +348,14 @@ def comment(request, post_id):
         if content:
             Comment.objects.create(post=post, author=request.user, content=content)
             messages.success(request, "Comment added!")
+            if post.author != request.user:
+                Notification.objects.create(
+                    to_user=post.author,
+                    from_user=request.user,
+                    notification_type='comment',
+                    post=post
+                )
+            
             return redirect('view_post', post_id=post.id)
         else:
             messages.error(request, "Comment cannot be empty.")
