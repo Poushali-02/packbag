@@ -122,6 +122,8 @@ def edit_profile(request, username):
         user_profile.name = name or request.user.username
         user_profile.bio = bio
         user_profile.location = location
+        user_profile.portfolio = request.POST.get('portfolio', '')
+        user_profile.youtube_channel = request.POST.get('youtube_channel', '')
         user_profile.user_type = user_type
         try:
             user_profile.save()

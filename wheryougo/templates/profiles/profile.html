@@ -76,34 +76,46 @@
                     </p>
                     
                     {% if not user.userprofile.is_private %}
-                        {% if user_profile.location %}
-                        <p class="text-gray-600 mt-2 flex items-center justify-center md:justify-start">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            {{ user_profile.location }}
-                        </p>
-                        {% else %}
-                        <p class="text-gray-600 mt-2 flex items-center justify-center md:justify-start">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Location not shared
-                        </p>
+                            {% if user_profile.location %}
+                            <p class="text-gray-600 mt-2 flex items-center justify-center md:justify-start">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                {{ user_profile.location }}
+                            </p>
+                            {% else %}
+                            <p class="text-gray-600 mt-2 flex items-center justify-center md:justify-start">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Location not shared
+                            </p>
+                            {% endif %}
+                    {% else %}
                         <p class="text-gray-600 mt-2 flex items-center justify-center md:justify-start">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                             Account Private
                         </p>
-                        {% endif %}
                     {% endif %}
 
                     {% if user_profile.bio %}
                         <p class="text-gray-700 mt-4 max-w-md">{{ user_profile.bio }}</p>
                     {% endif %}
                     
+                    {% if user_profile.portfolio %}
+                        <p class="text-gray-600 mt-2">
+                            <a href="{{ user_profile.portfolio }}" target="_blank" class="text-blue-500 hover:underline">View Portfolio</a>
+                        </p>
+                    {% endif %}
+                    {% if user_profile.youtube_channel %}
+                        <p class="text-gray-600 mt-2">
+                            <a href="{{ user_profile.youtube_channel }}" target="_blank" class="text-red-500 hover:underline">YouTube Channel</a>
+                        </p>
+                    {% endif %}
+
                     <!-- Stats -->
                     <div class="flex justify-center md:justify-start space-x-8 mt-6">
                         <div class="text-center">
@@ -126,9 +138,9 @@
                             <a href="{% url 'edit_profile' username=profile_user.username %}" class="bg-travel-blue text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition duration-200 text-center">
                                 Edit Profile
                             </a>
-                            <a href="#" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition duration-200 text-center">
-                                View Favorites
-                            </a>
+                            <button type="button" onclick="showFavorites({{ user.id }})" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition duration-200 text-center">
+                                Favorites
+                            </button>
                             <a href="#" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition duration-200 text-center">
                                 Settings
                             </a>

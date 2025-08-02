@@ -16,6 +16,8 @@ class UserProfile(models.Model):
         ('wanderer', 'Wanderer')
     ], default='traveler')
     created_at = models.DateTimeField(auto_now_add=True)
+    portfolio = models.URLField(max_length=200, blank=True, help_text="Link to your portfolio")
+    youtube_channel = models.URLField(max_length=200, blank=True, help_text="Link to your YouTube channel")
     is_private = models.BooleanField(default=False)
     show_location = models.BooleanField(default=True)
     

@@ -50,23 +50,3 @@ function deleteAccount() {
     alert('Delete account functionality would be implemented here');
     closeDeleteModal();
 }
-
-// Form validation
-document.querySelector('form').addEventListener('submit', function(e) {
-    const name = document.getElementById('name').value.trim();
-    const bio = document.getElementById('bio').value;
-    
-    if (!name) {
-        e.preventDefault();
-        alert('Please enter a display name');
-        document.getElementById('name').focus();
-        return;
-    }
-    
-    if (bio.length > 500) {
-        e.preventDefault();
-        alert('Bio must be 500 characters or less');
-        document.getElementById('bio').focus();
-        return;
-    }
-});
