@@ -28,4 +28,5 @@ urlpatterns = [
     path('feed/', include('feed.urls')),
     path('profile/', include('profiles.urls')),
     path('notifications/', include('notification.urls')),
+    path('trip/', include('trip.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

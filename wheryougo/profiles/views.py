@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from manage.models import UserProfile
 from feed.models import Post, Follow, Favorite
-from django.db.models import Count
+from django.db.models import Count, Q
 from notification.models import Notification
 
 def profile(request, username=None):

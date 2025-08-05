@@ -2,13 +2,16 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.feed, name='feed'),
-    path('create_post/', views.create_post, name='create_post'),
-    path('ajax/upload-image/', views.ajax_upload_image, name='ajax_upload_image'),
-    path('ajax/tag-suggestions/', views.get_tag_suggestions, name='tag_suggestions'),
-    path('post/<int:post_id>/like/', views.toggle_like, name='toggle_like'),
-    path('post/<int:post_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
-    path('comment/<int:comment_id>/like_comment/', views.toggle_comment_like, name='toggle_comment_like'),
-    path('view_post/<int:post_id>/', views.view_post, name='view_post'),
-    path('comment/<int:post_id>/', views.comment, name='comment'),
+    # API endpoints for frontend
+    path('api/feed/', views.api_feed, name='api_feed'),
+    path('api/posts/create/', views.api_create_post, name='api_create_post'),
+    path('api/posts/<int:post_id>/', views.api_get_post, name='api_get_post'),
+    path('api/posts/<int:post_id>/like/', views.api_toggle_like, name='api_toggle_like'),
+    path('api/posts/<int:post_id>/favorite/', views.api_toggle_favorite, name='api_toggle_favorite'),
+    path('api/posts/<int:post_id>/comment/', views.api_add_comment, name='api_add_comment'),
+    path('api/comments/<int:comment_id>/like/', views.api_toggle_comment_like, name='api_toggle_comment_like'),
+    path('api/tags/suggestions/', views.api_get_tag_suggestions, name='api_tag_suggestions'),
+    path('api/posts/search/', views.api_search_posts, name='api_search_posts'),
+    path('api/users/<int:user_id>/posts/', views.api_user_posts, name='api_user_posts'),
+    path('api/users/posts/', views.api_user_posts, name='api_current_user_posts'),  # Current user's posts
 ]
